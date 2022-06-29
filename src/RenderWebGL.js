@@ -14,6 +14,8 @@ const TextBubbleSkin = require('./TextBubbleSkin');
 const EffectTransform = require('./EffectTransform');
 const log = require('./util/log');
 
+const CoordinateSkin = require('./CoordinateSkin');
+
 const __isTouchingDrawablesPoint = twgl.v3.create();
 const __candidatesBounds = new Rectangle();
 const __fenceBounds = new Rectangle();
@@ -137,6 +139,8 @@ class RenderWebGL extends EventEmitter {
      */
     constructor (canvas, xLeft, xRight, yBottom, yTop) {
         super();
+
+        console.log('demo-scratch-render');
 
         /** @type {WebGLRenderingContext} */
         const gl = this._gl = RenderWebGL._getContext(canvas);
@@ -390,6 +394,64 @@ class RenderWebGL extends EventEmitter {
         newSkin.setTextBubble(type, text, pointsLeft);
         this._allSkins[skinId] = newSkin;
         return skinId;
+    }
+
+    /**
+     * 创建一个皮肤，实现一个Scratch 网格坐标层
+     * @returns {!int} the ID for the new skin.
+     */
+     createCoordinateSkin () {
+        const skinId = this._nextSkinId++;
+        const newSkin = new CoordinateSkin(skinId, this);
+        this._allSkins[skinId] = newSkin;
+        return skinId;
+    }
+
+    /**
+     * 更新网格坐标的字体大小
+     * @param {number} checkerSkinId
+     * @param {number} fontSize
+     */
+    updateCoordinateSkinFontSize (checkerSkinId, fontSize) {
+        const skin = this._allSkins[checkerSkinId];
+
+        if (skin instanceof CoordinateSkin) {
+            const newSkin = new CoordinateSkin(checkerSkinId, this);
+
+            newSkin.fontSize = fontSize;
+
+            this._reskin(checkerSkinId, newSkin);
+        }
+    }
+
+    /**
+     * 设置网格坐标的显示 or 隐藏
+     * @param {number} coordinateDrawableId
+     * @param {boolean} visible
+     */
+    setCoordinateVisible (coordinateDrawableId, visible) {
+        const coordinate = this._allDrawables[coordinateDrawableId];
+
+        if (!coordinate) {
+            return;
+        }
+
+        coordinate.updateVisible(visible);
+    }
+
+    /**
+     * 获取当前网格的可见状态
+     * @param {number} coordinateDrawableId
+     * @returns {boolean}
+     */
+    getCoordinateVisible (coordinateDrawableId) {
+        const coordinate = this._allDrawables[coordinateDrawableId];
+
+        if (!coordinate) {
+            return null;
+        }
+
+        return coordinate.getVisible();
     }
 
     /**
